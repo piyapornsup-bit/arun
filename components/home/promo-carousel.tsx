@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatThaiDate, type Post } from '@/lib/data'
 import { ImageTile } from '@/components/site/product-image'
@@ -13,45 +13,102 @@ import { cn } from '@/lib/utils'
 export function PromoCarousel({ promos }: { promos: Post[] }) {
   const trackRef = useRef<HTMLUListElement>(null)
   const [index, setIndex] = useState(0)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(promos.length > 1)
 
-  const scrollToIndex = useCallback((i: number) => {
+  const getScrollStep = useCallback(() => {
+    const track = trackRef.current
+    if (!track) return 320
+    const first = track.firstElementChild as HTMLElement | null
+    const second = first?.nextElementSibling as HTMLElement | null
+    if (first && second) {
+      return second.offsetLeft - first.offsetLeft
+    }
+    if (first) {
+      return first.offsetWidth + 20
+    }
+    return track.clientWidth * 0.8
+  }, [])
+
+  const updateScrollState = useCallback(() => {
     const track = trackRef.current
     if (!track) return
-    const clamped = Math.max(0, Math.min(promos.length - 1, i))
-    const item = track.children[clamped] as HTMLElement | undefined
-    if (!item) return
+    const { scrollLeft, scrollWidth, clientWidth } = track
+    const maxScroll = scrollWidth - clientWidth
+
+    if (maxScroll <= 1) {
+      setCanScrollLeft(false)
+      setCanScrollRight(false)
+      setIndex(0)
+      return
+    }
+
+    setCanScrollLeft(scrollLeft > 1)
+    setCanScrollRight(scrollLeft < maxScroll - 1)
+
+    const step = getScrollStep()
+    if (scrollLeft >= maxScroll - 4) {
+      setIndex(promos.length - 1)
+    } else {
+      const nextIndex = Math.max(0, Math.min(promos.length - 1, Math.round(scrollLeft / step)))
+      setIndex(nextIndex)
+    }
+  }, [getScrollStep, promos.length])
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+
+    updateScrollState()
+
+    const handleResize = () => {
+      updateScrollState()
+    }
+
+    track.addEventListener('scroll', updateScrollState, { passive: true })
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      track.removeEventListener('scroll', updateScrollState)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [updateScrollState])
+
+  const handleScrollLeft = useCallback(() => {
+    const track = trackRef.current
+    if (!track) return
+    const step = getScrollStep()
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    track.scrollTo({ left: item.offsetLeft - track.offsetLeft, behavior: reduce ? 'auto' : 'smooth' })
-  }, [promos.length])
+    track.scrollBy({ left: -step, behavior: reduce ? 'auto' : 'smooth' })
+    setCanScrollRight(true)
+  }, [getScrollStep])
 
-  const onScroll = () => {
+  const handleScrollRight = useCallback(() => {
     const track = trackRef.current
     if (!track) return
-    const first = track.children[0] as HTMLElement | undefined
-    if (!first) return
-    const step = first.offsetWidth + 20
-    const maxScroll = track.scrollWidth - track.clientWidth
-    const next = track.scrollLeft >= maxScroll - 4 ? promos.length - 1 : Math.round(track.scrollLeft / step)
-    setIndex(next)
-  }
+    const step = getScrollStep()
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    track.scrollBy({ left: step, behavior: reduce ? 'auto' : 'smooth' })
+    setCanScrollLeft(true)
+  }, [getScrollStep])
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowRight') {
       e.preventDefault()
-      scrollToIndex(index + 1)
+      handleScrollRight()
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      scrollToIndex(index - 1)
+      handleScrollLeft()
     }
   }
 
   return (
     <div role="region" aria-roledescription="carousel" aria-label="โปรโมชันตอนนี้" onKeyDown={onKeyDown}>
-      <div className="mb-4 flex justify-end gap-2">
+      <div className="relative z-10 mb-4 flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => scrollToIndex(index - 1)}
-          disabled={index === 0}
+          onClick={handleScrollLeft}
+          disabled={!canScrollLeft}
           aria-label="โปรโมชันก่อนหน้า"
           className={pill({ variant: 'secondary', size: 'icon' })}
         >
@@ -59,8 +116,8 @@ export function PromoCarousel({ promos }: { promos: Post[] }) {
         </button>
         <button
           type="button"
-          onClick={() => scrollToIndex(index + 1)}
-          disabled={index >= promos.length - 1}
+          onClick={handleScrollRight}
+          disabled={!canScrollRight}
           aria-label="โปรโมชันถัดไป"
           className={pill({ variant: 'secondary', size: 'icon' })}
         >
@@ -70,7 +127,7 @@ export function PromoCarousel({ promos }: { promos: Post[] }) {
 
       <ul
         ref={trackRef}
-        onScroll={onScroll}
+        onScroll={updateScrollState}
         className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:-mx-6 sm:scroll-px-6 sm:px-6"
       >
         {promos.map((promo, i) => (
