@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  --sun-50: #fff7ed;
+  --sun-100: #ffedd5;
+  --sun-200: #fed7aa;
+  --sun-400: #fb923c;
+  --sun-500: #f97316;
+  --sun-600: #ea580c;
+  --sun-700: #c2410c;
+  --cream: #fffbf5;
+  --surface: #ffffff;
+  --ink: #2a1f14;
+  --ink-muted: #7a6a5b;
+  --line: #f0e4d6;
+  --teal: #0f766e;
+  --berry: #be123c;
+  --leaf: #16a34a;
+  --hero-gradient: linear-gradient(135deg, #ffb347 0%, #ff7e5f 55%, #feb47b 100%);
+  --shadow-warm: 0 8px 24px rgba(194, 65, 12, 0.1);
+  --shadow-warm-hover: 0 14px 32px rgba(194, 65, 12, 0.18);
+
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--sun-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--sun-100);
+  --secondary-foreground: var(--sun-700);
+  --muted: var(--sun-50);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--sun-100);
+  --accent-foreground: var(--sun-700);
+  --destructive: var(--berry);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--sun-400);
+  --radius: 0.875rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-noto-thai), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-prompt), var(--font-noto-thai), ui-sans-serif, sans-serif;
+
+  --color-sun-50: var(--sun-50);
+  --color-sun-100: var(--sun-100);
+  --color-sun-200: var(--sun-200);
+  --color-sun-400: var(--sun-400);
+  --color-sun-500: var(--sun-500);
+  --color-sun-600: var(--sun-600);
+  --color-sun-700: var(--sun-700);
+  --color-cream: var(--cream);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-teal: var(--teal);
+  --color-berry: var(--berry);
+  --color-leaf: var(--leaf);
+
+  --shadow-warm: var(--shadow-warm);
+  --shadow-warm-hover: var(--shadow-warm-hover);
+  --radius-card: 20px;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  h1 {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    font-weight: 700;
+  }
+  h2 {
+    font-size: clamp(1.625rem, 3vw, 2.25rem);
+    font-weight: 700;
+  }
+  :focus-visible {
+    outline: 3px solid var(--sun-400);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility bg-sunrise {
+  background-image: var(--hero-gradient);
+}
+
+@utility stripes-out {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #f1f1f1 0,
+    #f1f1f1 4px,
+    #e2e2e2 4px,
+    #e2e2e2 8px
+  );
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
